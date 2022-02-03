@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include "common.hpp"
 
 using namespace std;
 
@@ -99,9 +100,39 @@ class vec3 {
             return (*this) / length();
         }
 
+        inline vec3 sqrtv(){
+            return vec3(sqrt(p[0]), sqrt(p[1]), sqrt(p[2]));
+        }
+
         bool sameDirection(const vec3 &v) {
             return dot(v) > 0;
         }
+
+        inline static vec3 random() {
+            return vec3(randomDouble(), randomDouble(), randomDouble());
+        }
+
+        inline static vec3 random(double min, double max) {
+            return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
+        }
+
+        inline static vec3 randomInUnitSphere() {
+            vec3 p;
+            do {
+                p = vec3::random(-1, 1);
+            }while(p.lengthSquared() >= 1);
+            return p;
+        }
+
+        inline static vec3 randomUnitVector() {
+            return randomInUnitSphere().normalize();
+        }
+
+        inline static vec3 randomInHemisphere(const vec3& normal) {
+            vec3 inUnitSphere = randomInUnitSphere();
+            return inUnitSphere.sameDirection(normal) ? inUnitSphere : -inUnitSphere;
+        }
+
 };
 
 inline vec3 operator*(double t, const vec3 &v) {

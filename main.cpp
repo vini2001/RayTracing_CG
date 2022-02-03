@@ -9,12 +9,18 @@
 
 using namespace std;
 
-color rayColor(const Ray& r, const ComponentList& componentList) {
+color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth) {
+
+    // ray bounce limit exceeded
+    if(maxDepth-- <= 0)
+        return color(0, 0, 0);
+
     Sphere s(p3(0, 0, -1), 0.5);
     HitRecord hr;
-    if(componentList.hit(r, 0, 10000000, hr)) {
-        v3 N = hr.normal;
-        return 0.5 * (N + color(1, 1, 1));
+    if(componentList.hit(r, 0.001, infinity, hr)) {
+        // Calculate the reflection direction. It's a diffuse component, so we randomize the direction.
+        p3 target = hr.p + vec3::randomInHemisphere(hr.normal);
+        return 0.5 * rayColor(Ray(hr.p, target - hr.p), componentList, maxDepth);
     }
 
     v3 unitDirection = r.direction().normalize();
@@ -25,9 +31,10 @@ color rayColor(const Ray& r, const ComponentList& componentList) {
 int main() {
 
     const auto aspectRatio = 16.0 / 9.0;
-    const int imgWidth = 1200;
+    const int imgWidth = 400;
     const int imgHeight = imgWidth / aspectRatio;
-    const int samplesPerPixel = 10;
+    const int samplesPerPixel = 100;
+    const int maxDepth = 50;
 
     // Components
     ComponentList componentList;
@@ -51,7 +58,7 @@ int main() {
                 auto v = double(row + randomDouble()) / (imgHeight-1);
                 // One ray for each pixel of the projection plane
                 Ray r = camera.getRay(u, v);
-                pixelColor += rayColor(r, componentList);
+                pixelColor += rayColor(r, componentList, maxDepth);
             }
             outputColor(pixelColor, samplesPerPixel);
         }

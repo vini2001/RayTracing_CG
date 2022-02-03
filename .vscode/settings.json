@@ -4,6 +4,9 @@
         "queue": "cpp",
         "random": "cpp",
         "algorithm": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "complex": "cpp",
+        "cmath": "cpp",
+        "limits": "cpp"
     }
 }

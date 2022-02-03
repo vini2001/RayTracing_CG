@@ -13,7 +13,8 @@ void output(const vec3& color) {
 }
 
 void outputColor(color pixelColor, int samplesPerPixel) {
-    output(pixelColor / samplesPerPixel);
+    // Divide the color by the number of samples and gamma-correct for gamma=2.0.
+    output((pixelColor / samplesPerPixel).sqrtv());
 }
 
 #endif

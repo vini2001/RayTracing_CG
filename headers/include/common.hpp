@@ -1,7 +1,6 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include "ray.hpp"
 #include "vec3.hpp"
 #include <cstdlib>
 
