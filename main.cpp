@@ -46,7 +46,7 @@ int main() {
 
     MaterialPtr diffuseGround = make_shared<LambertianMaterial>(color(0.27, 0.16, 0.1));
     MaterialPtr front = make_shared<LambertianMaterial>(color(0.3, 0.3, 0.7));
-    MaterialPtr sides = make_shared<MetalMaterial>(color(0.8, 0.8, 0.8), 0.05);
+    MaterialPtr sides = make_shared<MetalMaterial>(color(0.8, 0.8, 0.8), 0.00);
     MaterialPtr top = make_shared<MetalMaterial>(color(0.14, 0.23, 0.8), 0.3);
     MaterialPtr glass = make_shared<DialectricMaterial>(1.5);
 
@@ -58,7 +58,11 @@ int main() {
     componentList.add(make_shared<Sphere>(Sphere(p3(0, 0.35, -0.6), 0.15, top)));
     componentList.add(make_shared<Sphere>(Sphere(p3(0, -100.5, -1), 100, diffuseGround)));
 
-    Camera camera(p3(-2,2,1), p3(0, 0, -1), v3(0, 1, 0), 40, aspectRatio);
+    p3 lookFrom(-2,1.3,1);
+    p3 lookAt(0, 0, -1);
+    double distToFocus = (lookFrom-lookAt).length();
+    auto aperture = 2.0;
+    Camera camera(lookFrom, lookAt, v3(0, 1, 0), 40, aspectRatio, aperture, distToFocus);
 
     // Render
     cout << "P3\n" << imgWidth << " " << imgHeight << "\n255\n";

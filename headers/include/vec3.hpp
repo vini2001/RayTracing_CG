@@ -73,7 +73,7 @@ class vec3 {
             return vec3(p[0] - v.p[0], p[1] - v.p[1], p[2] - v.p[2]);
         }
 
-        inline vec3 operator*(vec3 &v) {
+        inline vec3 operator*(const vec3 &v) const {
             return vec3(p[0] * v.p[0], p[1] * v.p[1], p[2] * v.p[2]);
         }
 
@@ -120,6 +120,15 @@ class vec3 {
             vec3 p;
             do {
                 p = vec3::random(-1, 1);
+            }while(p.lengthSquared() >= 1);
+            return p;
+        }
+
+        inline static vec3 randomInUnitDisk() {
+            vec3 p;
+            do {
+                p = vec3::random(-1, 1);
+                p = vec3(p.x(), p.y(), 0);
             }while(p.lengthSquared() >= 1);
             return p;
         }
