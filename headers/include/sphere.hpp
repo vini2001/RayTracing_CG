@@ -9,8 +9,9 @@ class Sphere : public Hittable {
     public:
         p3 center;
         double radius;
+        shared_ptr<Material> matPtr;
 
-        Sphere(p3 center, double radius) : center(center), radius(radius) {};
+        Sphere(p3 center, double radius, shared_ptr<Material> m) : center(center), radius(radius), matPtr(m) {};
 
         // check ray colision with sphere
         // this function considers the vectorized sphere equation and solve it for t, t is the multiplier of the direction on the Ray's formula.
@@ -41,6 +42,7 @@ bool Sphere::hit(const Ray &r, double tMin, double tMax, HitRecord &rec) const {
     v3 outwardNormal = (rec.p - center) / radius;
     rec.rayComingFromOutside = !outwardNormal.sameDirection(r.direction());
     rec.normal = rec.rayComingFromOutside ? outwardNormal : -outwardNormal;
+    rec.matPtr = matPtr;
     return true;
 }
 #endif // !SPHERE_HPP

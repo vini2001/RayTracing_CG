@@ -85,7 +85,7 @@ class vec3 {
             return vec3(p[0] / t, p[1] / t, p[2] / t);
         }
 
-        inline double dot(const vec3 &v) {
+        inline double dot(const vec3 &v) const {
             const vec3 &u = *this;
             return u.p[0] * v.p[0] + u.p[1] * v.p[1] + u.p[2] * v.p[2];
         }
@@ -133,6 +133,13 @@ class vec3 {
             return inUnitSphere.sameDirection(normal) ? inUnitSphere : -inUnitSphere;
         }
 
+        bool nearZero() const {
+            const auto limit = 1e-8;
+            return fabs(p[0]) < limit && fabs(p[1]) < limit && fabs(p[2]) < limit;
+        }
+
+        vec3 reflect(const vec3& normal) const;
+
 };
 
 inline vec3 operator*(double t, const vec3 &v) {
@@ -146,6 +153,11 @@ inline vec3 operator+(const vec3 &u, const vec3 &v) {
 inline vec3 operator-(const vec3 &u, const vec3 &v) {
     return vec3(u.p[0] - v.p[0], u.p[1] - v.p[1], u.p[2] - v.p[2]);
 }
+
+vec3 vec3::reflect(const vec3& normal) const {
+    return *this - 2 * (dot(normal) * normal);
+}
+
 
 using p3 = vec3;
 using v3 = vec3;

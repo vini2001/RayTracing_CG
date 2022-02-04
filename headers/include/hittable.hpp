@@ -2,12 +2,15 @@
 #define HITTABLE_HPP
 
 #include "ray.hpp"
+#include "common.hpp"
+#include "material.hpp"
 
 struct HitRecord {
     p3 p;
     v3 normal;
     double t;
     bool rayComingFromOutside;
+    shared_ptr<Material> matPtr;
 };
 
 class Hittable {
