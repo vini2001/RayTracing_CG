@@ -36,13 +36,56 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth) {
     return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
 }
 
+ComponentList randomScene() {
+    ComponentList componentList;
+
+    MaterialPtr groundMaterial = make_shared<LambertianMaterial>(color(0.5, 0.5, 0.5));
+    componentList.add(make_shared<Sphere>(v3(0, -1000, 0), 1000, groundMaterial));
+
+    for(int a = -11; a < 11; a++) {
+        for(int b = -11; b < 11; b++) {
+            double chooseMat = randomDouble();
+
+            p3 center(a + 0.9*randomDouble(), 0.2, b + 0.9*randomDouble());
+
+            if((center - p3(4, 0.2, 0)).length() > 0.9) {
+                if(chooseMat < 0.8) {
+                    // diffuse
+                    MaterialPtr matPtr = make_shared<LambertianMaterial>(color::random() * color::random());
+                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                } else if(chooseMat < 0.95) {
+                    // metal
+                    double fuzz = randomDouble(0, 0.5);
+                    color col = color::random(0.5, 1.0);
+                    MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
+                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                } else {
+                    MaterialPtr matPtr = make_shared<DialectricMaterial>(1.5);
+                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                }
+            }
+        }
+    }
+
+    MaterialPtr mat1 = make_shared<DialectricMaterial>(1.5);
+    componentList.add(make_shared<Sphere>(v3(0, 1, 0), 1.0, mat1));
+
+    MaterialPtr mat2 = make_shared<LambertianMaterial>(color(0.4, 0.2, 0.1));
+    componentList.add(make_shared<Sphere>(v3(-4, 1, 0), 1.0, mat2));
+
+    MaterialPtr mat3 = make_shared<MetalMaterial>(color(0.7, 0.6, 0.5), 0.0);
+    componentList.add(make_shared<Sphere>(v3(4, 1, 0), 1.0, mat3));
+
+    return componentList;
+}
+
 int main() {
 
     const auto aspectRatio = 16.0 / 9.0;
-    const int imgWidth = 500;
+    const int imgWidth = 2500;
     const int imgHeight = imgWidth / aspectRatio;
-    const int samplesPerPixel = 100;
-    const int maxDepth = 50;
+    const int samplesPerPixel = 500;
+    const int maxDepth = 60;
 
     MaterialPtr diffuseGround = make_shared<LambertianMaterial>(color(0.27, 0.16, 0.1));
     MaterialPtr front = make_shared<LambertianMaterial>(color(0.3, 0.3, 0.7));
@@ -51,17 +94,12 @@ int main() {
     MaterialPtr glass = make_shared<DialectricMaterial>(1.5);
 
     // Components
-    ComponentList componentList;
-    componentList.add(make_shared<Sphere>(Sphere(p3(0, 0, -1), 0.5, front)));
-    componentList.add(make_shared<Sphere>(Sphere(p3(-1.2, 0, -1.3), 0.35, sides)));
-    componentList.add(make_shared<Sphere>(Sphere(p3(1.2, 0, -1.3), -0.35, glass)));
-    componentList.add(make_shared<Sphere>(Sphere(p3(0, 0.35, -0.6), 0.15, top)));
-    componentList.add(make_shared<Sphere>(Sphere(p3(0, -100.5, -1), 100, diffuseGround)));
+    ComponentList componentList = randomScene();
 
-    p3 lookFrom(-2,1.3,1);
-    p3 lookAt(0, 0, -1);
-    double distToFocus = (lookFrom-lookAt).length();
-    auto aperture = 2.0;
+    p3 lookFrom(13, 2, 3);
+    p3 lookAt(0, 0, 0);
+    double distToFocus = 10.0; //(lookFrom-lookAt).length();
+    auto aperture = 0.1;
     Camera camera(lookFrom, lookAt, v3(0, 1, 0), 40, aspectRatio, aperture, distToFocus);
 
     // Render
