@@ -138,7 +138,10 @@ class vec3 {
             return fabs(p[0]) < limit && fabs(p[1]) < limit && fabs(p[2]) < limit;
         }
 
+
         vec3 reflect(const vec3& normal) const;
+
+        vec3 refract(const vec3& normal, double etaiOverEtat);
 
 };
 
@@ -156,6 +159,13 @@ inline vec3 operator-(const vec3 &u, const vec3 &v) {
 
 vec3 vec3::reflect(const vec3& normal) const {
     return *this - 2 * (dot(normal) * normal);
+}
+
+vec3 vec3::refract(const vec3& normal, double etaiOverEtat) {
+    double cosTheta = fmin(-(*this).dot(normal), 1.0);
+    vec3 rOutPerp = etaiOverEtat * ((*this) + cosTheta * normal);
+    vec3 rOutParal = -sqrt(fabs(1.0 - rOutPerp.lengthSquared())) * normal;
+    return rOutPerp + rOutParal;
 }
 
 

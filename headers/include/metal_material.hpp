@@ -4,11 +4,12 @@
 class MetalMaterial : public Material {
     public:
         color col;
-        MetalMaterial(const color& col) : col(col) {} 
+        double fuziness;
+        MetalMaterial(const color& col, double fuziness) : col(col), fuziness(fuziness < 1.0 ? fuziness : 1.0) {} 
 
         virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered) const override {
             auto reflected = rIn.direction().normalize().reflect(rec.normal);
-            scattered = Ray(rec.p, reflected);
+            scattered = Ray(rec.p, reflected + fuziness * vec3::randomInUnitSphere());
             attenuation = col;
             return (scattered.direction().sameDirection(rec.normal));
         }

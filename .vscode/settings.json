@@ -13,6 +13,12 @@
         "deque": "cpp",
         "string": "cpp",
         "string_view": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "__availability": "cpp",
+        "__config": "cpp",
+        "condition_variable": "cpp",
+        "functional": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp"
     }
 }
