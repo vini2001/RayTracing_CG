@@ -58,7 +58,7 @@ int main() {
     componentList.add(make_shared<Sphere>(Sphere(p3(0, 0.35, -0.6), 0.15, top)));
     componentList.add(make_shared<Sphere>(Sphere(p3(0, -100.5, -1), 100, diffuseGround)));
 
-    Camera camera(aspectRatio);
+    Camera camera(p3(-2,2,1), p3(0, 0, -1), v3(0, 1, 0), 40, aspectRatio);
 
     // Render
     cout << "P3\n" << imgWidth << " " << imgHeight << "\n255\n";

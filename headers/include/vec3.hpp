@@ -90,7 +90,7 @@ class vec3 {
             return u.p[0] * v.p[0] + u.p[1] * v.p[1] + u.p[2] * v.p[2];
         }
 
-        inline vec3 cross(const vec3 &u, const vec3 &v) {
+        inline static vec3 cross(const vec3 &u, const vec3 &v) {
             return vec3(u.p[1] * v.p[2] - u.p[2] * v.p[1],
                         u.p[2] * v.p[0] - u.p[0] * v.p[2],
                         u.p[0] * v.p[1] - u.p[1] * v.p[0]);

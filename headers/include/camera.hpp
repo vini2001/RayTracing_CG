@@ -10,16 +10,26 @@ class Camera {
         double aspectRatio;
 
     public:
-    
-        Camera(double aspectRatio) : aspectRatio(aspectRatio) {
-            double viewportHeight = 2.0;
+
+        // vFov stands for vertical field of view, in degrees
+        Camera(p3 lookFrom, p3 lookAt, vec3 vUp,
+                 double vFov, double aspectRatio
+        ) : aspectRatio(aspectRatio) {
+            double theta = degreesToRadians(vFov);
+            double h = tan(theta/2);
+            double viewportHeight = 2.0 * h;
             double viewportWidth = aspectRatio * viewportHeight;
+
+            vec3 w = (lookFrom - lookAt).normalize();
+            vec3 u = vec3::cross(vUp, w).normalize();
+            vec3 v = vec3::cross(w, u);
+
             double focalLength = 1.0; // distance between the projection plane and the projection point, not the same as focal distance
 
-            origin = p3(0, 0, 0);
-            horizontalAxis = v3(viewportWidth, 0, 0);
-            verticalAxis = v3(0, viewportHeight, 0);
-            lowerLeftCorner = origin - horizontalAxis/2 - verticalAxis/2 - v3(0, 0, focalLength);
+            origin = lookFrom;
+            horizontalAxis = viewportWidth * u;
+            verticalAxis = viewportHeight * v;
+            lowerLeftCorner = origin - horizontalAxis/2 - verticalAxis/2 - w;
         }
 
         Ray getRay(double u, double v) const {
