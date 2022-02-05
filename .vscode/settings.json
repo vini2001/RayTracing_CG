@@ -19,6 +19,12 @@
         "condition_variable": "cpp",
         "functional": "cpp",
         "memory": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "iosfwd": "cpp",
+        "new": "cpp",
+        "fstream": "cpp",
+        "__node_handle": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp"
     }
 }

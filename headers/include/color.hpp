@@ -6,15 +6,15 @@
 
 using namespace std;
 
-void output(const vec3& color) {
-    cout << static_cast<int>(255.999 * clamp(color.x(), 0.0, 1.0)) << " "
+void output(ostream &outStream, const vec3& color) {
+    outStream << static_cast<int>(255.999 * clamp(color.x(), 0.0, 1.0)) << " "
        << static_cast<int>(255.999 * clamp(color.y(), 0.0, 1.0)) << " "
        << static_cast<int>(255.999 * clamp(color.z(), 0.0, 1.0)) << "\n";
 }
 
-void outputColor(color pixelColor, int samplesPerPixel) {
+void outputColor(ostream &outStream, color pixelColor, int samplesPerPixel) {
     // Divide the color by the number of samples and gamma-correct for gamma=2.0.
-    output((pixelColor / samplesPerPixel).sqrtv());
+    output(outStream, (pixelColor / samplesPerPixel).sqrtv());
 }
 
 #endif

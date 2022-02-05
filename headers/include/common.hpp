@@ -2,6 +2,7 @@
 #define COMMON_HPP
 
 #include "vec3.hpp"
+#include "vec2.hpp"
 #include <cstdlib>
 
 using namespace std;

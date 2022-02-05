@@ -4,21 +4,23 @@
 #include "common.hpp"
 #include "material.hpp"
 #include "ray.hpp"
+#include "texture.hpp"
 
 class LambertianMaterial : public Material {
     public:
-        color col;
-        LambertianMaterial(const color& col) : col(col) {}
+        TexturePtr col;
+        LambertianMaterial(const color& col) : col(make_shared<SolidColor>(col)) {}
+        LambertianMaterial(const TexturePtr& col) : col(col) {}
 
-        virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered) const override {
-            auto scatterDirection = rec.normal + vec3::randomUnitVector();
+        virtual bool scatter(const Ray& rIn, const HitRecord& hr, color& attenuation, Ray& scattered) const override {
+            auto scatterDirection = hr.normal + vec3::randomUnitVector();
 
             // If the scatter direction is close to 0, NaN issues would occur.
             if(scatterDirection.nearZero()) 
-                scatterDirection = rec.normal;
+                scatterDirection = hr.normal;
 
-            scattered = Ray(rec.p, scatterDirection);
-            attenuation = col;
+            scattered = Ray(hr.p, scatterDirection);
+            attenuation = col->value(hr.uv, hr.p);
             return true;
         }
 };

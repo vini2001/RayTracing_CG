@@ -9,6 +9,7 @@ struct HitRecord {
     p3 p;
     v3 normal;
     double t;
+    vec2 uv; // U,V surface coordinates of the hit point
     bool rayComingFromOutside;
     shared_ptr<Material> matPtr;
 };

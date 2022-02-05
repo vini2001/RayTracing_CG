@@ -9,17 +9,21 @@
 #include "lambertian_material.hpp"
 #include "metal_material.hpp"
 #include "dialectric_material.hpp"
-#include<thread>
+#include <thread>
+#include <fstream>
 
 typedef shared_ptr<Material> MaterialPtr;
 
 using namespace std;
 
+char* inputFileName;
+char* outputFileName;
+
 color **img;
-const int imgWidth = 1500;
-const auto aspectRatio = 3.0 / 2.0;
+const int imgWidth = 500;
+const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 500;
+const int samplesPerPixel = 100;//00;
 const int maxDepth = 50;
 
 int remainingRows = imgHeight;
@@ -57,32 +61,35 @@ void printRemaining() {
     cerr << "\rScanlines remaining: " << remainingRows << ' ' << flush;
 }
 
-ComponentList randomScene() {
+ComponentList randomScene(int extraBalls, float size) {
+    int rowxcol = sqrt(extraBalls)/2;
+    float mult = 11.0 / rowxcol;
     ComponentList componentList;
 
-    MaterialPtr groundMaterial = make_shared<LambertianMaterial>(color(0.5, 0.5, 0.5));
+    TexturePtr checker = make_shared<CheckerTexture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+    MaterialPtr groundMaterial = make_shared<LambertianMaterial>(checker);
     componentList.add(make_shared<Sphere>(v3(0, -1000, 0), 1000, groundMaterial));
 
-    for(int a = -11; a < 11; a++) {
-        for(int b = -11; b < 11; b++) {
+    for(int a = -rowxcol; a < rowxcol; a++) {
+        for(int b = -rowxcol; b < rowxcol; b++) {
             double chooseMat = randomDouble();
 
-            p3 center(a + 0.9*randomDouble(), 0.2, b + 0.9*randomDouble());
+            p3 center(mult*a + mult*0.9*randomDouble(), 0.2, mult*b + mult*0.9*randomDouble());
 
             if((center - p3(4, 0.2, 0)).length() > 0.9) {
                 if(chooseMat < 0.8) {
                     // diffuse
                     MaterialPtr matPtr = make_shared<LambertianMaterial>(color::random() * color::random());
-                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                    componentList.add(make_shared<Sphere>(center, size, matPtr));
                 } else if(chooseMat < 0.95) {
                     // metal
                     double fuzz = randomDouble(0, 0.5);
                     color col = color::random(0.5, 1.0);
                     MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
-                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                    componentList.add(make_shared<Sphere>(center, size, matPtr));
                 } else {
                     MaterialPtr matPtr = make_shared<DialectricMaterial>(1.5);
-                    componentList.add(make_shared<Sphere>(center, 0.2, matPtr));
+                    componentList.add(make_shared<Sphere>(center, size, matPtr));
                 }
             }
         }
@@ -118,7 +125,46 @@ void computeFor(int rowFrom, int rowTo){
     }
 }
 
-int main() {
+bool validateArgs(int argc, char** argv) {
+    if(argc < 3) {
+        cerr << "Usage: " << argv[0] << " <input_file> <output_file>" << endl;
+        return false;
+    }
+    inputFileName = argv[1];
+    outputFileName = argv[2];
+
+    // if outputfile doesn't have .ppm extension, add it
+    if(strcmp(outputFileName + strlen(outputFileName) - 4, ".ppm") != 0) {
+        char* newOutputFile = new char[strlen(outputFileName) + 5];
+        strcpy(newOutputFile, outputFileName);
+        strcat(newOutputFile, ".ppm");
+        outputFileName = newOutputFile;
+    }
+    return true;
+}
+
+int main(int argc, char** argv) {
+
+    if(!validateArgs(argc, argv))
+        return -1;
+
+    // create file
+    ofstream outputFile;
+    ifstream inputFile(inputFileName);
+    outputFile.open(outputFileName);
+
+    if (inputFile.is_open()) {
+        string line;
+        while (getline(inputFile, line)){
+            cout << line << endl;
+        }
+        inputFile.close();
+    }else{
+        cout << "Unable to open file" << endl;
+        inputFile.close();
+        return -1;
+    }
+
 
     img = new color*[imgHeight];
     for(int i = 0; i < imgHeight; i++) {
@@ -135,10 +181,10 @@ int main() {
     MaterialPtr glass = make_shared<DialectricMaterial>(1.5);
 
     // Components
-    componentList = randomScene();
+    componentList = randomScene(16, 0.5);
 
     // Render
-    cout << "P3\n" << imgWidth << " " << imgHeight << "\n255\n";
+    outputFile << "P3\n" << imgWidth << " " << imgHeight << "\n255\n";
 
     vector<thread*> threads;
     
@@ -161,9 +207,11 @@ int main() {
 
     for(int row = imgHeight-1; row >= 0; --row) {
         for(int col = 0; col < imgWidth; ++col) {
-            outputColor(img[row][col], samplesPerPixel);
+            outputColor(outputFile, img[row][col], samplesPerPixel);
         }
     }
     cerr << "\nDone.\n";
+
+    outputFile.close();
     return 0;
 }
