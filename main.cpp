@@ -31,9 +31,11 @@ int remainingRows = imgHeight;
 ComponentList componentList;
 p3 lookFrom(13, 2, 3);
 p3 lookAt(0, 0, 0);
+vec3 vUp = v3(0, 1, 0);
+double vFov = 50;
 double distToFocus = 10.0; //(lookFrom-lookAt).length();
-auto aperture = 0.1;
-Camera camera(lookFrom, lookAt, v3(0, 1, 0), 40, aspectRatio, aperture, distToFocus);
+auto aperture = 0.00;
+Camera camera;
 
 color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth) {
 
@@ -66,7 +68,8 @@ ComponentList randomScene(int extraBalls, float size) {
     float mult = 11.0 / rowxcol;
     ComponentList componentList;
 
-    TexturePtr checker = make_shared<CheckerTexture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+    CheckerTexturePtr checker = make_shared<CheckerTexture>(color(0.007, 0.1568, 0.32115), color(0.7, 0.7, 0.7));
+    checker->setScale(0.7);
     MaterialPtr groundMaterial = make_shared<LambertianMaterial>(checker);
     componentList.add(make_shared<Sphere>(v3(0, -1000, 0), 1000, groundMaterial));
 
@@ -143,6 +146,54 @@ bool validateArgs(int argc, char** argv) {
     return true;
 }
 
+void processInputFile(ifstream &inputFile) {
+    string line;
+
+    // Camera Inputs
+    getline(inputFile, line);
+    lookFrom = p3(line);
+
+    getline(inputFile, line);
+    lookAt = p3(line);
+
+    getline(inputFile, line);
+    vUp = p3(line);
+    
+    getline(inputFile, line);
+    vFov = stod(line);
+
+    camera = Camera(lookFrom, lookAt, vUp, vFov, aspectRatio, aperture, distToFocus);
+
+    // Lights Inputs
+    getline(inputFile, line);
+    int numLights = stoi(line);
+
+    for(int i = 0; i < numLights; i++) {
+        getline(inputFile, line);
+        vector<string> lightDetails = split(line);
+        p3 lightPos = p3(stod(lightDetails[0]), stod(lightDetails[1]), stod(lightDetails[2]));
+        p3 lightColor = p3(stod(lightDetails[3]), stod(lightDetails[4]), stod(lightDetails[5]));
+        double attenuationConstant = stod(lightDetails[6]);
+        double attenuationLinear = stod(lightDetails[7]); // atennuation proportional to distance from light
+        double attenuationQuadratic = stod(lightDetails[8]); // atennuation proportional to distance from light squared
+    }
+    
+    // TODO
+    // Pigments Inputs
+
+    // TODO
+    // Materials Inputs
+
+    // TODO
+    // Objects Inputs
+    
+
+
+    while (getline(inputFile, line)){
+        cout << line << endl;
+    }
+}
+
 int main(int argc, char** argv) {
 
     if(!validateArgs(argc, argv))
@@ -154,10 +205,7 @@ int main(int argc, char** argv) {
     outputFile.open(outputFileName);
 
     if (inputFile.is_open()) {
-        string line;
-        while (getline(inputFile, line)){
-            cout << line << endl;
-        }
+        processInputFile(inputFile);
         inputFile.close();
     }else{
         cout << "Unable to open file" << endl;

@@ -14,6 +14,8 @@ class Camera {
 
     public:
 
+        Camera() {}
+        
         // vFov stands for vertical field of view, in degrees
         Camera(p3 lookFrom, p3 lookAt, vec3 vUp,
                  double vFov, double aspectRatio,

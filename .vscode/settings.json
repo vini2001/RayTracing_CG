@@ -25,6 +25,7 @@
         "fstream": "cpp",
         "__node_handle": "cpp",
         "optional": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "cstring": "cpp"
     }
 }

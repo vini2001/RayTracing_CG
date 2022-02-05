@@ -4,6 +4,10 @@
 #include "vec3.hpp"
 #include "vec2.hpp"
 #include <cstdlib>
+#include <vector>
+#include <cstring>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -23,5 +27,14 @@ inline double randomDouble(double min, double max) { // min,max).
     return min + (max-min)*randomDouble();
 }
 
-#endif // !COMMON_HPP
+vector <string> split(string text){
+    vector <string> result;
+    stringstream ss(text);
+    string word;
+    while (ss >> word) {
+        result.push_back(word);
+    }
+    return result;
+}
 
+#endif // !COMMON_HPP

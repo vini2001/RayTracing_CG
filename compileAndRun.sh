@@ -1,3 +1,3 @@
 make
-./demo.o input1.txt img.ppm
-open img.ppm;
+./demo.o inputs/input1.txt outputs/img.ppm
+open outputs/img.ppm;

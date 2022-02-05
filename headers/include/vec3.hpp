@@ -18,6 +18,12 @@ class vec3 {
             p[1] = c1;
             p[2] = c2;
         }
+        vec3(string line) {
+            vector<string> tokens = split(line);
+            p[0] = stod(tokens[0]);
+            p[1] = stod(tokens[1]);
+            p[2] = stod(tokens[2]);
+        }
         
         double x() const { return p[0]; }
         double y() const { return p[1]; }
