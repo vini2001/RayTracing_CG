@@ -5,6 +5,10 @@
 #include "material.hpp"
 #include "ray.hpp"
 #include "texture.hpp"
+#include "solid_color.hpp"
+#include "image_texture.hpp"
+#include "checker_texture.hpp"
+
 
 class LambertianMaterial : public Material {
     public:
@@ -12,7 +16,7 @@ class LambertianMaterial : public Material {
         LambertianMaterial(const color& col) : col(make_shared<SolidColor>(col)) {}
         LambertianMaterial(const TexturePtr& col) : col(col) {}
 
-        virtual bool scatter(const Ray& rIn, const HitRecord& hr, color& attenuation, Ray& scattered) const override {
+        virtual bool scatter(const Ray& rIn, const HitRecord& hr, color& attenuation, Ray& scattered, bool &isLight) const override {
             auto scatterDirection = hr.normal + vec3::randomUnitVector();
 
             // If the scatter direction is close to 0, NaN issues would occur.

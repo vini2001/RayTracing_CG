@@ -5,7 +5,7 @@ OBJS = main.cpp #src/*.cpp
 CC = g++
 
 #Path to aditional files needed to compile
-INCLUDE_PATHS = -I headers/include/
+INCLUDE_PATHS = -I headers/include/ -I headers/include/textures/ -I /opt/local/include/
 
 #Path to libraries needed to compile
 LIBRARY_PATHS = 

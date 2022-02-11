@@ -15,5 +15,10 @@ class vec2 {
             p[0] = c0;
             p[1] = c1;
         }
+
+        double x() const { return p[0]; }
+        double y() const { return p[1]; }
+        double u() const { return p[0]; }
+        double v() const { return p[1]; }
 };
 #endif

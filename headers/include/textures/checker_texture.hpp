@@ -1,28 +1,7 @@
-#ifndef TEXTURE_HPP
-#define TEXTURE_HPP
+#ifndef CHECKER_TEXTURE_HPP
+#define CHECKER_TEXTURE_HPP
 
-#include "common.hpp"
-
-class Texture {
-    public:
-        virtual vec3 value(vec2 uv, const p3& p) const = 0;
-};
-typedef shared_ptr<Texture> TexturePtr;
-
-class SolidColor : public Texture {
-    private:
-        color col;
-
-    public:
-        SolidColor() {}
-        SolidColor(const color& c) : col(c) {}
-
-        SolidColor(double red, double green, double blue) : SolidColor(color(red, green, blue)) {}
-
-        virtual color value(vec2 uv, const p3& p) const override {
-            return col;
-        }
-};
+#include "texture.hpp"
 
 class CheckerTexture : public Texture {
     private:
@@ -47,4 +26,4 @@ class CheckerTexture : public Texture {
 };
 typedef shared_ptr<CheckerTexture> CheckerTexturePtr;
 
-#endif // !TEXTURE_HPP
+#endif // !CHECKER_TEXTURE_HPP

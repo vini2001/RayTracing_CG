@@ -53,8 +53,8 @@ bool Sphere::hit(const Ray &r, double tMin, double tMax, HitRecord &rec) const {
 // p is a point on a sphere of radius 1
 // Returned (u,v) is the texture coordinates for the point p on the sphere
 vec2 Sphere::getSphereUV(const p3& p) {
-    double phi = atan2(p.z(), p.x()) + pi;
-    double theta = asin(-p.y());
+    double phi = atan2(-p.z(), p.x()) + pi;
+    double theta = acos(-p.y());
     return vec2(phi / (2 * pi), theta / pi);
 }
 

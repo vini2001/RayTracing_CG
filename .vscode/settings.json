@@ -26,6 +26,8 @@
         "__node_handle": "cpp",
         "optional": "cpp",
         "system_error": "cpp",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "ios": "cpp",
+        "__nullptr": "cpp"
     }
 }

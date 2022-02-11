@@ -4,11 +4,13 @@
 class DialectricMaterial : public Material {
     public:
         double indexOfrefraction;
+        TexturePtr col = nullptr;
 
         DialectricMaterial(double indexOfrefraction) : indexOfrefraction(indexOfrefraction) {}
+        DialectricMaterial(double indexOfrefraction, TexturePtr col) : indexOfrefraction(indexOfrefraction), col(col) {}
 
-        virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered) const override {
-            attenuation = color(1.0, 1.0, 1.0);
+        virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered, bool &isLight) const override {
+            attenuation = col == nullptr ? color(1.0, 1.0, 1.0) : col->value(rec.uv, rec.p);
             double refractionRatio = rec.rayComingFromOutside ? (1.0 / indexOfrefraction) : (indexOfrefraction);
 
             vec3 unitDirection = rIn.direction().normalize();

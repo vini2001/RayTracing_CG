@@ -11,6 +11,7 @@
 #include "dialectric_material.hpp"
 #include <thread>
 #include <fstream>
+#include "light.hpp"
 
 typedef shared_ptr<Material> MaterialPtr;
 
@@ -20,7 +21,7 @@ char* inputFileName;
 char* outputFileName;
 
 color **img;
-const int imgWidth = 500;
+const int imgWidth = 600;
 const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
 const int samplesPerPixel = 100;//00;
@@ -37,7 +38,7 @@ double distToFocus = 10.0; //(lookFrom-lookAt).length();
 auto aperture = 0.00;
 Camera camera;
 
-color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth) {
+color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth, color bg) {
 
     // ray bounce limit exceeded
     if(maxDepth-- <= 0)
@@ -47,16 +48,17 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth) {
     if(componentList.hit(r, 0.001, infinity, hr)) {
         Ray scattered;
         color attenuation;
-        if(hr.matPtr->scatter(r, hr, attenuation, scattered)) {
-            vec3 target = rayColor(scattered, componentList, maxDepth);
+        bool isLight = false;
+        if(hr.matPtr->scatter(r, hr, attenuation, scattered, isLight)) {
+            vec3 target = rayColor(scattered, componentList, maxDepth, bg);
             return attenuation * target;
+        }else{
+            if(isLight) return attenuation;
+            return color(0, 0, 0);
         }
-        return color(0, 0, 0);
+    }else{
+        return bg;
     }
-
-    v3 unitDirection = r.direction().normalize();
-    auto t = 0.5 * (unitDirection.y() + 1);
-    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
 }
 
 void printRemaining() {
@@ -67,6 +69,11 @@ ComponentList randomScene(int extraBalls, float size) {
     int rowxcol = sqrt(extraBalls)/2;
     float mult = 11.0 / rowxcol;
     ComponentList componentList;
+
+    TexturePtr earth = make_shared<ImageTexture>("textures/earth.jpeg");
+    MaterialPtr earthMaterial = make_shared<LambertianMaterial>(earth);
+    MaterialPtr lightMaterial = make_shared<LightMaterial>(color(1, 1, 1), 4);
+    MaterialPtr earthDialectricMaterial = make_shared<DialectricMaterial>(0.005, earth);
 
     CheckerTexturePtr checker = make_shared<CheckerTexture>(color(0.007, 0.1568, 0.32115), color(0.7, 0.7, 0.7));
     checker->setScale(0.7);
@@ -105,7 +112,10 @@ ComponentList randomScene(int extraBalls, float size) {
     componentList.add(make_shared<Sphere>(v3(-4, 1, 0), 1.0, mat2));
 
     MaterialPtr mat3 = make_shared<MetalMaterial>(color(0.7, 0.6, 0.5), 0.0);
-    componentList.add(make_shared<Sphere>(v3(4, 1, 0), 1.0, mat3));
+    componentList.add(make_shared<Sphere>(v3(0, 4, 0), 2.0, earthDialectricMaterial));
+    // componentList.add(make_shared<Sphere>(v3(0, 5, 0), 2.5, mat3));
+
+    componentList.add(make_shared<Sphere>(v3(-16, 30, 0), 12.5, lightMaterial));
 
     return componentList;
 }
@@ -119,7 +129,10 @@ void computeFor(int rowFrom, int rowTo){
                 auto v = double(row + randomDouble()) / (imgHeight-1);
                 // One ray for each pixel of the projection plane
                 Ray r = camera.getRay(u, v);
-                pixelColor += rayColor(r, componentList, maxDepth);
+
+                // color background = color(0.62, 0.72, 0.96);
+                color background = color(0.01, 0.01, 0.01);
+                pixelColor += rayColor(r, componentList, maxDepth, background);
             }
             img[row][col] += pixelColor;
         }
