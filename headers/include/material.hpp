@@ -7,6 +7,7 @@ struct HitRecord;
 
 class Material {
     public:
+        bool ghostMaterial = false;
         virtual bool scatter(const Ray& r, const HitRecord& rec, v3& attenuation, Ray& scattered, bool &isLight) const = 0;
 };
 

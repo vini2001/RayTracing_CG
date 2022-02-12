@@ -10,8 +10,12 @@ class LightMaterial : public Material {
         TexturePtr col;
         double lightIntensity;
 
-        LightMaterial(const color& col, double lightIntensity) : col(make_shared<SolidColor>(col)), lightIntensity(lightIntensity)  {}
-        LightMaterial(const TexturePtr& col, double lightIntensity) : col(col), lightIntensity(lightIntensity) {}
+        LightMaterial(const color& col, double lightIntensity, bool ghostMaterial) : col(make_shared<SolidColor>(col)), lightIntensity(lightIntensity) {
+            this->ghostMaterial = ghostMaterial;
+        }
+        LightMaterial(const TexturePtr& col, double lightIntensity, bool ghostMaterial) : col(col), lightIntensity(lightIntensity) {
+            this->ghostMaterial = ghostMaterial;
+        }
 
         virtual bool scatter(const Ray& rIn, const HitRecord& hr, color& attenuation, Ray& scattered, bool &isLight) const override {
             // Don't reflect any rays

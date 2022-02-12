@@ -21,10 +21,10 @@ char* inputFileName;
 char* outputFileName;
 
 color **img;
-const int imgWidth = 600;
+const int imgWidth = 500;
 const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 100;//00;
+const int samplesPerPixel = 50;//00;
 const int maxDepth = 50;
 
 int remainingRows = imgHeight;
@@ -38,22 +38,24 @@ double distToFocus = 10.0; //(lookFrom-lookAt).length();
 auto aperture = 0.00;
 Camera camera;
 
-color rayColor(const Ray& r, const ComponentList& componentList, int maxDepth, color bg) {
+color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, color bg) {
 
     // ray bounce limit exceeded
-    if(maxDepth-- <= 0)
+    if(maxDep <= 0)
         return color(0, 0, 0);
 
     HitRecord hr;
-    if(componentList.hit(r, 0.001, infinity, hr)) {
+    if(componentList.hit(r, 0.001, infinity, hr, maxDep < maxDepth)) {
         Ray scattered;
         color attenuation;
         bool isLight = false;
         if(hr.matPtr->scatter(r, hr, attenuation, scattered, isLight)) {
-            vec3 target = rayColor(scattered, componentList, maxDepth, bg);
+            vec3 target = rayColor(scattered, componentList, maxDep - 1, bg);
             return attenuation * target;
         }else{
-            if(isLight) return attenuation;
+            if(isLight) {
+                return attenuation;
+            }
             return color(0, 0, 0);
         }
     }else{
@@ -72,7 +74,7 @@ ComponentList randomScene(int extraBalls, float size) {
 
     TexturePtr earth = make_shared<ImageTexture>("textures/earth.jpeg");
     MaterialPtr earthMaterial = make_shared<LambertianMaterial>(earth);
-    MaterialPtr lightMaterial = make_shared<LightMaterial>(color(1, 1, 1), 4);
+    MaterialPtr lightMaterial = make_shared<LightMaterial>(color(1, 1, 1), 4, false);
     MaterialPtr earthDialectricMaterial = make_shared<DialectricMaterial>(0.005, earth);
 
     CheckerTexturePtr checker = make_shared<CheckerTexture>(color(0.007, 0.1568, 0.32115), color(0.7, 0.7, 0.7));
@@ -131,7 +133,7 @@ void computeFor(int rowFrom, int rowTo){
                 Ray r = camera.getRay(u, v);
 
                 // color background = color(0.62, 0.72, 0.96);
-                color background = color(0.01, 0.01, 0.01);
+                color background = color(0.31, 0.31, 0.31);
                 pixelColor += rayColor(r, componentList, maxDepth, background);
             }
             img[row][col] += pixelColor;
@@ -189,6 +191,9 @@ void processInputFile(ifstream &inputFile) {
         double attenuationConstant = stod(lightDetails[6]);
         double attenuationLinear = stod(lightDetails[7]); // atennuation proportional to distance from light
         double attenuationQuadratic = stod(lightDetails[8]); // atennuation proportional to distance from light squared
+
+        MaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, true);
+        componentList.add(make_shared<Sphere>(lightPos, 3.0, lightMaterial));
     }
     
     // TODO
@@ -217,6 +222,9 @@ int main(int argc, char** argv) {
     ifstream inputFile(inputFileName);
     outputFile.open(outputFileName);
 
+    // Components
+    componentList = randomScene(16, 0.5);
+
     if (inputFile.is_open()) {
         processInputFile(inputFile);
         inputFile.close();
@@ -240,9 +248,6 @@ int main(int argc, char** argv) {
     MaterialPtr sides = make_shared<MetalMaterial>(color(0.8, 0.8, 0.8), 0.00);
     MaterialPtr top = make_shared<MetalMaterial>(color(0.14, 0.23, 0.8), 0.3);
     MaterialPtr glass = make_shared<DialectricMaterial>(1.5);
-
-    // Components
-    componentList = randomScene(16, 0.5);
 
     // Render
     outputFile << "P3\n" << imgWidth << " " << imgHeight << "\n255\n";

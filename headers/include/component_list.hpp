@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class ComponentList : public Hittable {
+class ComponentList {
     public:
 
         vector<shared_ptr<Hittable>> objects;
@@ -26,19 +26,21 @@ class ComponentList : public Hittable {
             objects.push_back(object);
         }
 
-        virtual bool hit(const Ray& r, double tMin, double tmaX, HitRecord& rec) const override;
+        bool hit(const Ray& r, double tMin, double tmaX, HitRecord& rec, bool reflected) const;
 };
 
-bool ComponentList::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
+bool ComponentList::hit(const Ray& r, double tMin, double tMax, HitRecord& rec, bool reflected) const {
     HitRecord tempRecord;
     bool hitAnything = false;
     double closest = tMax;
 
     for(const auto& ob : objects) {
         if(ob->hit(r, tMin, closest, tempRecord)) {
-            hitAnything = true;
-            closest = tempRecord.t;
-            rec = tempRecord;
+            if(reflected || !tempRecord.matPtr->ghostMaterial) {
+                hitAnything = true;
+                closest = tempRecord.t;
+                rec = tempRecord;
+            }
         }
     }
 
