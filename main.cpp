@@ -12,8 +12,8 @@
 #include <thread>
 #include <fstream>
 #include "light.hpp"
-
-typedef shared_ptr<Material> MaterialPtr;
+#include "vec4.hpp"
+#include "generic_material.hpp"
 
 using namespace std;
 
@@ -24,12 +24,16 @@ color **img;
 const int imgWidth = 500;
 const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 50;//00;
-const int maxDepth = 50;
+const int samplesPerPixel = 20;//00;
+const int maxDepth = 3; //50
 
 int remainingRows = imgHeight;
 
+vector<TexturePtr> pigments;
+vector<shared_ptr<GenericMaterial>> materials;
+
 ComponentList componentList;
+vector<Sphere> lights; 
 p3 lookFrom(13, 2, 3);
 p3 lookAt(0, 0, 0);
 vec3 vUp = v3(0, 1, 0);
@@ -38,11 +42,37 @@ double distToFocus = 10.0; //(lookFrom-lookAt).length();
 auto aperture = 0.00;
 Camera camera;
 
+// TODO: Apply lights coefficients
+double lightMultiplier(HitRecord hr, vector<Sphere> lights) {
+    double lightSum = 0.4;
+    p3 p = hr.p;
+    for (auto light : lights) {
+        double distance;
+        // get vector from p to light.center
+        vec3 lightDir = light.center - p;
+        HitRecord hr2;
+        bool didHit = componentList.hit(Ray(p, lightDir), 0.001, infinity, hr2, true);
+        double distanceToLight = lightDir.length();
+        if(!didHit){
+            lightSum += (1-lightSum) * 0.7;
+        }else{
+            double distanceToHit = (hr2.p - p).length();
+            if(distanceToHit > distanceToLight){
+                lightSum += (1-lightSum) * 0.7;
+            }
+        }
+    }
+    // if(lightSum > 0.51) cout << "lightSum " << lightSum << endl;
+    return lightSum;
+}
+
 color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, color bg) {
 
     // ray bounce limit exceeded
-    if(maxDep <= 0)
-        return color(0, 0, 0);
+    if(maxDep <= 0) {
+        // don't change light
+        return color(1,1,1);
+    }
 
     HitRecord hr;
     if(componentList.hit(r, 0.001, infinity, hr, maxDep < maxDepth)) {
@@ -51,11 +81,12 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, col
         bool isLight = false;
         if(hr.matPtr->scatter(r, hr, attenuation, scattered, isLight)) {
             vec3 target = rayColor(scattered, componentList, maxDep - 1, bg);
-            return attenuation * target;
+            return lightMultiplier(hr, lights) * attenuation * target;
         }else{
             if(isLight) {
                 return attenuation;
             }
+
             return color(0, 0, 0);
         }
     }else{
@@ -64,62 +95,7 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, col
 }
 
 void printRemaining() {
-    cerr << "\rScanlines remaining: " << remainingRows << ' ' << flush;
-}
-
-ComponentList randomScene(int extraBalls, float size) {
-    int rowxcol = sqrt(extraBalls)/2;
-    float mult = 11.0 / rowxcol;
-    ComponentList componentList;
-
-    TexturePtr earth = make_shared<ImageTexture>("textures/earth.jpeg");
-    MaterialPtr earthMaterial = make_shared<LambertianMaterial>(earth);
-    MaterialPtr lightMaterial = make_shared<LightMaterial>(color(1, 1, 1), 4, false);
-    MaterialPtr earthDialectricMaterial = make_shared<DialectricMaterial>(0.005, earth);
-
-    CheckerTexturePtr checker = make_shared<CheckerTexture>(color(0.007, 0.1568, 0.32115), color(0.7, 0.7, 0.7));
-    checker->setScale(0.7);
-    MaterialPtr groundMaterial = make_shared<LambertianMaterial>(checker);
-    componentList.add(make_shared<Sphere>(v3(0, -1000, 0), 1000, groundMaterial));
-
-    for(int a = -rowxcol; a < rowxcol; a++) {
-        for(int b = -rowxcol; b < rowxcol; b++) {
-            double chooseMat = randomDouble();
-
-            p3 center(mult*a + mult*0.9*randomDouble(), 0.2, mult*b + mult*0.9*randomDouble());
-
-            if((center - p3(4, 0.2, 0)).length() > 0.9) {
-                if(chooseMat < 0.8) {
-                    // diffuse
-                    MaterialPtr matPtr = make_shared<LambertianMaterial>(color::random() * color::random());
-                    componentList.add(make_shared<Sphere>(center, size, matPtr));
-                } else if(chooseMat < 0.95) {
-                    // metal
-                    double fuzz = randomDouble(0, 0.5);
-                    color col = color::random(0.5, 1.0);
-                    MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
-                    componentList.add(make_shared<Sphere>(center, size, matPtr));
-                } else {
-                    MaterialPtr matPtr = make_shared<DialectricMaterial>(1.5);
-                    componentList.add(make_shared<Sphere>(center, size, matPtr));
-                }
-            }
-        }
-    }
-
-    MaterialPtr mat1 = make_shared<DialectricMaterial>(1.5);
-    componentList.add(make_shared<Sphere>(v3(0, 1, 0), 1.0, mat1));
-
-    MaterialPtr mat2 = make_shared<LambertianMaterial>(color(0.4, 0.2, 0.1));
-    componentList.add(make_shared<Sphere>(v3(-4, 1, 0), 1.0, mat2));
-
-    MaterialPtr mat3 = make_shared<MetalMaterial>(color(0.7, 0.6, 0.5), 0.0);
-    componentList.add(make_shared<Sphere>(v3(0, 4, 0), 2.0, earthDialectricMaterial));
-    // componentList.add(make_shared<Sphere>(v3(0, 5, 0), 2.5, mat3));
-
-    componentList.add(make_shared<Sphere>(v3(-16, 30, 0), 12.5, lightMaterial));
-
-    return componentList;
+    cerr << "\rLines remaining: " << remainingRows << ' ' << flush;
 }
 
 void computeFor(int rowFrom, int rowTo){
@@ -134,7 +110,8 @@ void computeFor(int rowFrom, int rowTo){
 
                 // color background = color(0.62, 0.72, 0.96);
                 color background = color(0.31, 0.31, 0.31);
-                pixelColor += rayColor(r, componentList, maxDepth, background);
+                color c = rayColor(r, componentList, maxDepth, background);
+                pixelColor += c;
             }
             img[row][col] += pixelColor;
         }
@@ -193,17 +170,93 @@ void processInputFile(ifstream &inputFile) {
         double attenuationQuadratic = stod(lightDetails[8]); // atennuation proportional to distance from light squared
 
         MaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, true);
-        componentList.add(make_shared<Sphere>(lightPos, 3.0, lightMaterial));
+        // Init light with size 0.0 since it won't be actually rendered
+        lights.push_back(Sphere(lightPos, 0.0, lightMaterial));
     }
     
-    // TODO
     // Pigments Inputs
+    getline(inputFile, line);
+    int numPigments = stoi(line);
+    for(int i = 0; i < numPigments; i++) {
+        getline(inputFile, line);
+        vector<string> pigmentDetails = split(line);
+        if(pigmentDetails[0] == "solid") {
+            color pigmentColor = p3(stod(pigmentDetails[1]), stod(pigmentDetails[2]), stod(pigmentDetails[3]));
+            pigments.push_back(make_shared<SolidColor>(pigmentColor));
+        } else if(pigmentDetails[0] == "textmap") {
+            string image = pigmentDetails[1];
+            vector<string> lightDetails;
+            getline(inputFile, line); lightDetails = split(line);
+            vec4 tmP0 = vec4(stod(lightDetails[0]), stod(lightDetails[1]), stod(lightDetails[2]), stod(lightDetails[3]));
+            getline(inputFile, line); lightDetails = split(line);
+            vec4 tmP1 = vec4(stod(lightDetails[0]), stod(lightDetails[1]), stod(lightDetails[2]), stod(lightDetails[3]));
 
-    // TODO
+            pigments.push_back(make_shared<ImageTexturePs>(image.c_str(), tmP0, tmP1));
+        } else if(pigmentDetails[0] == "checker") {
+            color c1 = p3(stod(pigmentDetails[1]), stod(pigmentDetails[2]), stod(pigmentDetails[3]));
+            color c2 = p3(stod(pigmentDetails[4]), stod(pigmentDetails[5]), stod(pigmentDetails[6]));
+            double size = stod(pigmentDetails[7]);
+
+            CheckerTexturePtr checker = make_shared<CheckerTexture>(c1, c2);
+            checker->setSize(size);
+            pigments.push_back(checker);
+        }
+    }
+
     // Materials Inputs
+    getline(inputFile, line);
+    int numMaterials = stoi(line);
+    for(int i = 0; i < numMaterials; i++) {
+        getline(inputFile, line);
+        vector<string> materialDetails = split(line);
+        double ka = stod(materialDetails[0]); // environment light coefficient //TODO
+        double kd = stod(materialDetails[1]); // kd diffuse light coefficient
+        double ks = stod(materialDetails[2]); // specular light coefficient
+        double alpha = stod(materialDetails[3]); // expoent for specular reflection
 
-    // TODO
+        double kr = stod(materialDetails[4]); // reflection coefficient
+        double kt = stod(materialDetails[5]); // transmission coefficient
+        double ior = stod(materialDetails[6]); // index of refraction
+
+        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(/*ka, kd, ks, alpha, */kr, kt, ior);
+        // cout << "Material " << i << ": " << matPtr->reflectionCoefficient << ", " << matPtr->refractionCoefficient  << ", " << matPtr->indexOfrefraction << endl;
+        materials.push_back(matPtr);
+    }
+
     // Objects Inputs
+    getline(inputFile, line);
+    int numObjects = stoi(line);
+    for(int i = 0; i < numObjects; i++) {
+        getline(inputFile, line);
+        vector<string> objectDetails = split(line);
+        int pigmentIndex = stoi(objectDetails[0]);
+        int materialIndex = stoi(objectDetails[1]);
+        string objectType = objectDetails[2];
+        if(objectType == "sphere") {
+            p3 center = p3(stod(objectDetails[3]), stod(objectDetails[4]), stod(objectDetails[5]));
+            double radius = stod(objectDetails[6]);
+
+            GenericMaterial mat =  *materials[materialIndex];
+            mat.col = pigments[pigmentIndex];
+
+            GenericMaterialPtr matPtr = make_shared<GenericMaterial>(mat);
+            cout << "Material " << i << ": " << matPtr->reflectionCoefficient << ", " << matPtr->refractionCoefficient  << ", " << matPtr->indexOfrefraction << endl;
+            componentList.add(make_shared<Sphere>(center, radius, matPtr));
+        }else if(objectType == "polyhedron") {
+            int numFaces = stoi(objectDetails[3]);
+            for(int i = 0; i < numFaces; i++) {
+                getline(inputFile, line);
+                vector<string> faceDetails = split(line);
+
+                double c1 = stod(faceDetails[0]);
+                double c2 = stod(faceDetails[1]);
+                double c3 = stod(faceDetails[2]);
+                double c4 = stod(faceDetails[3]);
+
+               
+            }
+        }
+    }
     
 
 
@@ -222,9 +275,6 @@ int main(int argc, char** argv) {
     ifstream inputFile(inputFileName);
     outputFile.open(outputFileName);
 
-    // Components
-    componentList = randomScene(16, 0.5);
-
     if (inputFile.is_open()) {
         processInputFile(inputFile);
         inputFile.close();
@@ -233,7 +283,6 @@ int main(int argc, char** argv) {
         inputFile.close();
         return -1;
     }
-
 
     img = new color*[imgHeight];
     for(int i = 0; i < imgHeight; i++) {
@@ -259,8 +308,6 @@ int main(int argc, char** argv) {
     for(int row = imgHeight; row >= 0; row -= batchSize) {
         int from = row-batchSize < 0 ? 0 : row-batchSize;
         int to = row - 1 < 0 ? 0 : row - 1;
-
-        // cerr << from << " - " << to << endl;
 
         thread *th = new thread(computeFor, from, to);
         threads.push_back(th);

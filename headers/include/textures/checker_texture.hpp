@@ -15,8 +15,8 @@ class CheckerTexture : public Texture {
         CheckerTexture(const color& odd, const color& even) : CheckerTexture(make_shared<SolidColor>(odd), make_shared<SolidColor>(even)) {}
 
         
-        void setScale(double s) {
-            scale = 8.0 / s;
+        void setSize(double s) {
+            scale = pi / s;
         }
 
         virtual color value(vec2 uv, const p3& p) const override {

@@ -11,4 +11,6 @@ class Material {
         virtual bool scatter(const Ray& r, const HitRecord& rec, v3& attenuation, Ray& scattered, bool &isLight) const = 0;
 };
 
+typedef shared_ptr<Material> MaterialPtr;
+
 #endif // !MATERIAL_HPP

@@ -7,6 +7,7 @@
 #include "texture.hpp"
 #include "solid_color.hpp"
 #include "image_texture.hpp"
+#include "image_texture_ps.hpp"
 #include "checker_texture.hpp"
 
 
