@@ -168,7 +168,7 @@ void processInputFile(ifstream &inputFile) {
         double attenuationLinear = stod(lightDetails[7]); // atennuation proportional to distance from light
         double attenuationQuadratic = stod(lightDetails[8]); // atennuation proportional to distance from light squared
 
-        MaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, true);
+        MaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, attenuationLinear, attenuationQuadratic, true);
         // Init light with size 0.0 since it won't be actually rendered
         lights.push_back(Sphere(lightPos, 0.0, lightMaterial));
     }

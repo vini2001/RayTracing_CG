@@ -1,11 +1,11 @@
 #Files that will be compiled
-OBJS = main.cpp #src/*.cpp
+OBJS = main.cpp src/*.cpp
 
 #Used compiler
 CC = g++
 
 #Path to aditional files needed to compile
-INCLUDE_PATHS = -I headers/include/ -I headers/include/textures/ -I /opt/local/include/
+INCLUDE_PATHS = -I headers/include/ -I headers/include/textures/ -I /opt/local/include/ -I headers/include/objects/ -I headers/include/materials/ -I headers/include/vectors/
 
 #Path to libraries needed to compile
 LIBRARY_PATHS = 
