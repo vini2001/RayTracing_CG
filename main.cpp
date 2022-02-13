@@ -1,6 +1,5 @@
 #include <iostream>
 #include "color.hpp"
-#include "vec3.hpp"
 #include "ray.hpp"
 #include "sphere.hpp"
 #include "common.hpp"
@@ -12,8 +11,8 @@
 #include <thread>
 #include <fstream>
 #include "light.hpp"
-#include "vec4.hpp"
 #include "generic_material.hpp"
+#include "polyhedron.hpp"
 
 using namespace std;
 
@@ -24,7 +23,7 @@ color **img;
 const int imgWidth = 500;
 const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 20;//00;
+const int samplesPerPixel = 40;//00;
 const int maxDepth = 3; //50
 
 int remainingRows = imgHeight;
@@ -232,18 +231,18 @@ void processInputFile(ifstream &inputFile) {
         int pigmentIndex = stoi(objectDetails[0]);
         int materialIndex = stoi(objectDetails[1]);
         string objectType = objectDetails[2];
+
+        GenericMaterial mat =  *materials[materialIndex];
+        mat.col = pigments[pigmentIndex];
+        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(mat);
+
         if(objectType == "sphere") {
             p3 center = p3(stod(objectDetails[3]), stod(objectDetails[4]), stod(objectDetails[5]));
             double radius = stod(objectDetails[6]);
-
-            GenericMaterial mat =  *materials[materialIndex];
-            mat.col = pigments[pigmentIndex];
-
-            GenericMaterialPtr matPtr = make_shared<GenericMaterial>(mat);
-            cout << "Material " << i << ": " << matPtr->reflectionCoefficient << ", " << matPtr->refractionCoefficient  << ", " << matPtr->indexOfrefraction << endl;
             componentList.add(make_shared<Sphere>(center, radius, matPtr));
         }else if(objectType == "polyhedron") {
             int numFaces = stoi(objectDetails[3]);
+            PolyhedronPtr poly = make_shared<Polyhedron>(matPtr);
             for(int i = 0; i < numFaces; i++) {
                 getline(inputFile, line);
                 vector<string> faceDetails = split(line);
@@ -252,9 +251,10 @@ void processInputFile(ifstream &inputFile) {
                 double c2 = stod(faceDetails[1]);
                 double c3 = stod(faceDetails[2]);
                 double c4 = stod(faceDetails[3]);
-
-               
+                Plane p = Plane(c1, c2, c3, c4);
+                poly->addFace(p);
             }
+            componentList.add(poly);
         }
     }
     

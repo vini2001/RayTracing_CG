@@ -1,7 +1,6 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include "vec3.hpp"
 #include "vec2.hpp"
 #include <cstdlib>
 #include <vector>
@@ -27,7 +26,7 @@ inline double randomDouble(double min, double max) { // min,max).
     return min + (max-min)*randomDouble();
 }
 
-vector <string> split(string text){
+inline vector <string> split(string text){
     vector <string> result;
     stringstream ss(text);
     string word;

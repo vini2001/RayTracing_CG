@@ -2,9 +2,11 @@
 #define VEC4_HPP
 
 #include <cmath>
-#include "common.hpp"
+#include "vec3.hpp"
 
 using namespace std;
+
+class vec3;
 
 class vec4 {
     public:
@@ -18,12 +20,20 @@ class vec4 {
             p[3] = c3;
         }
 
+        vec4(vec3 v, double c3);
+
         double operator[] (int i) const { return p[i]; }
         double& operator[] (int i) { return p[i]; }
 
-        inline double dot(const vec3 &v) const {
-            const vec4 &u = *this;
-            return u.p[0] * v.p[0] + u.p[1] * v.p[1] + u.p[2] * v.p[2] + u.p[3] * 1.0;
-        }
+        vec4 normalize();
+
+        double dot(const vec3 &v) const;
+        double dot(const vec4 &v) const;
+
+        vec4 operator*(double t) const;
+
+        double lengthSquared() const;
+        double length() const;
 };
+
 #endif
