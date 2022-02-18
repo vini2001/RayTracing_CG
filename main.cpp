@@ -11,6 +11,7 @@
 #include <thread>
 #include <fstream>
 #include "light.hpp"
+#include "light_material.hpp"
 #include "generic_material.hpp"
 #include "polyhedron.hpp"
 
@@ -20,11 +21,11 @@ char* inputFileName;
 char* outputFileName;
 
 color **img;
-const int imgWidth = 500;
+const int imgWidth = 800;
 const auto aspectRatio = 16.0 / 9.0;
 const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 40;//00;
-const int maxDepth = 3; //50
+const int samplesPerPixel = 20;
+const int maxDepth = 10;
 
 int remainingRows = imgHeight;
 
@@ -32,7 +33,7 @@ vector<TexturePtr> pigments;
 vector<shared_ptr<GenericMaterial>> materials;
 
 ComponentList componentList;
-vector<Sphere> lights; 
+vector<Light> lights; 
 p3 lookFrom(13, 2, 3);
 p3 lookAt(0, 0, 0);
 vec3 vUp = v3(0, 1, 0);
@@ -41,28 +42,53 @@ double distToFocus = 10.0; //(lookFrom-lookAt).length();
 auto aperture = 0.00;
 Camera camera;
 
-// TODO: Apply lights coefficients
-double lightMultiplier(HitRecord hr, vector<Sphere> lights) {
-    double lightSum = 0.4;
+void lightMultiplier(const Ray& r, HitRecord hr, vector<Light> lights, v3& diffuseColor, v3& specularColor) {
     p3 p = hr.p;
-    for (auto light : lights) {
+
+    v3 diffuseC = color(0, 0, 0);
+    v3 specularC = color(0, 0, 0);
+    for (Light light : lights) {
         double distance;
         // get vector from p to light.center
         vec3 lightDir = light.center - p;
+        vec3 normalizedLightDir = lightDir.normalize();
         HitRecord hr2;
         bool didHit = componentList.hit(Ray(p, lightDir), 0.001, infinity, hr2, true);
         double distanceToLight = lightDir.length();
+
+        bool inShadow = true;
+
         if(!didHit){
-            lightSum += (1-lightSum) * 0.7;
+            inShadow = false;
         }else{
             double distanceToHit = (hr2.p - p).length();
             if(distanceToHit > distanceToLight){
-                lightSum += (1-lightSum) * 0.7;
+                inShadow = false;
             }
         }
+
+        if(!inShadow) {
+            MaterialPtr hitMat = hr.matPtr;
+            LightMaterialPtr lightMat = light.matPtr;
+
+            double attenuation = 1.0 /  (
+                lightMat->lightAttenuationConstant + 
+                    distanceToLight * lightMat->lightAttenuationLinear + 
+                    lightMat->lightAttenuationQuadratic * pow(distanceToLight, 2)
+            );
+
+            diffuseC += (hitMat->diffuseLightCoefficient * attenuation * lightMat->col);
+
+            v3 reflectionDirection = r.dir.normalize();
+            double cosSpec = (normalizedLightDir - reflectionDirection).normalize().dot(hr.normal);
+            if(cosSpec < 0.0000001) cosSpec = 0.0;
+            cosSpec = pow(cosSpec, hitMat->reflectionLightExponent);
+            specularC += (cosSpec * hitMat->specularLightCoefficient * attenuation * lightMat->col);            
+        }
     }
-    // if(lightSum > 0.51) cout << "lightSum " << lightSum << endl;
-    return lightSum;
+
+    diffuseColor = diffuseC.sqrtv().sqrtv();
+    specularColor = specularC;
 }
 
 color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, color bg) {
@@ -70,7 +96,7 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, col
     // ray bounce limit exceeded
     if(maxDep <= 0) {
         // don't change light
-        return color(1,1,1);
+        return color(1, 1, 1);
     }
 
     HitRecord hr;
@@ -78,15 +104,17 @@ color rayColor(const Ray& r, const ComponentList& componentList, int maxDep, col
         Ray scattered;
         color attenuation;
         bool isLight = false;
+
+        v3 diffuseColor, specularColor;
+        lightMultiplier(r, hr, lights, diffuseColor, specularColor);
+        v3 ambientLight = (hr.matPtr->ambientLightCoefficient * lights[0].matPtr->col).sqrtv();
+
         if(hr.matPtr->scatter(r, hr, attenuation, scattered, isLight)) {
             vec3 target = rayColor(scattered, componentList, maxDep - 1, bg);
-            return lightMultiplier(hr, lights) * attenuation * target;
-        }else{
-            if(isLight) {
-                return attenuation;
-            }
 
-            return color(0, 0, 0);
+            return attenuation * target * (diffuseColor + ambientLight) + specularColor;
+        }else{
+            return attenuation * (diffuseColor + ambientLight) + specularColor;
         }
     }else{
         return bg;
@@ -168,9 +196,8 @@ void processInputFile(ifstream &inputFile) {
         double attenuationLinear = stod(lightDetails[7]); // atennuation proportional to distance from light
         double attenuationQuadratic = stod(lightDetails[8]); // atennuation proportional to distance from light squared
 
-        MaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, attenuationLinear, attenuationQuadratic, true);
-        // Init light with size 0.0 since it won't be actually rendered
-        lights.push_back(Sphere(lightPos, 0.0, lightMaterial));
+        LightMaterialPtr lightMaterial = make_shared<LightMaterial>(lightColor, attenuationConstant, attenuationLinear, attenuationQuadratic, true);
+        lights.push_back(Light(lightPos, lightMaterial));
     }
     
     // Pigments Inputs
@@ -217,7 +244,7 @@ void processInputFile(ifstream &inputFile) {
         double kt = stod(materialDetails[5]); // transmission coefficient
         double ior = stod(materialDetails[6]); // index of refraction
 
-        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(/*ka, kd, ks, alpha, */kr, kt, ior);
+        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(ka, kd, ks, alpha, kr, kt, ior);
         // cout << "Material " << i << ": " << matPtr->reflectionCoefficient << ", " << matPtr->refractionCoefficient  << ", " << matPtr->indexOfrefraction << endl;
         materials.push_back(matPtr);
     }

@@ -14,7 +14,9 @@ void output(ostream &outStream, const vec3& color) {
 
 void outputColor(ostream &outStream, color pixelColor, int samplesPerPixel) {
     // Divide the color by the number of samples and gamma-correct for gamma=2.0.
-    output(outStream, (pixelColor / samplesPerPixel).sqrtv());
+    bool gamaCorrected = false;
+    color col = (pixelColor / samplesPerPixel);
+    output(outStream, gamaCorrected ? col.sqrtv() : col);
 }
 
 #endif

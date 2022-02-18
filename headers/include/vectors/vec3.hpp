@@ -110,6 +110,10 @@ class vec3 {
             return (*this) / length();
         }
 
+        inline vec3 normalize() const {
+            return vec3(p[0], p[1], p[2]) / length();
+        }
+
         inline vec3 sqrtv(){
             return vec3(sqrt(p[0]), sqrt(p[1]), sqrt(p[2]));
         }

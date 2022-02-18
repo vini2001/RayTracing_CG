@@ -10,7 +10,6 @@
 #include "image_texture_ps.hpp"
 #include "checker_texture.hpp"
 
-
 class LambertianMaterial : public Material {
     public:
         TexturePtr col;
@@ -18,7 +17,7 @@ class LambertianMaterial : public Material {
         LambertianMaterial(const TexturePtr& col) : col(col) {}
 
         virtual bool scatter(const Ray& rIn, const HitRecord& hr, color& attenuation, Ray& scattered, bool &isLight) const override {
-            auto scatterDirection = hr.normal + vec3::randomUnitVector();
+            auto scatterDirection = hr.normal.normalize() + vec3::randomUnitVector();
 
             // If the scatter direction is close to 0, NaN issues would occur.
             if(scatterDirection.nearZero()) 

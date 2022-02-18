@@ -11,15 +11,40 @@ class GenericMaterial : public Material {
         double reflectionCoefficient;
         double refractionCoefficient;
         double indexOfrefraction;
+
         TexturePtr col = nullptr;
 
-        GenericMaterial(double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction) : reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction), col(make_shared<SolidColor>(color(1.0, 1.0, 1.0))) {}
-        GenericMaterial(double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction, TexturePtr col) :  reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction), col(col) {}
+        GenericMaterial(double ambientLightCoefficient, double diffuseLightCoefficient, double specularLightCoefficient, double reflectionLightExponent, double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction) 
+        : reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction),  col(make_shared<SolidColor>(color(1.0, 1.0, 1.0))) {
+            this->ambientLightCoefficient = ambientLightCoefficient;
+            this->diffuseLightCoefficient = diffuseLightCoefficient;
+            this->specularLightCoefficient = specularLightCoefficient;
+            this->reflectionLightExponent = reflectionLightExponent;
+        }
 
-        GenericMaterial(GenericMaterial &m) : reflectionCoefficient(m.reflectionCoefficient), refractionCoefficient(m.refractionCoefficient), indexOfrefraction(m.indexOfrefraction), col(m.col) {}
+        GenericMaterial(double ambientLightCoefficient, double diffuseLightCoefficient, double specularLightCoefficient, double reflectionLightExponent, double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction, TexturePtr col) :   reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction), col(col) {
+            this->ambientLightCoefficient = ambientLightCoefficient;
+            this->diffuseLightCoefficient = diffuseLightCoefficient;
+            this->specularLightCoefficient = specularLightCoefficient;
+            this->reflectionLightExponent = reflectionLightExponent;
+        }
+
+        GenericMaterial(GenericMaterial &m) : reflectionCoefficient(m.reflectionCoefficient), refractionCoefficient(m.refractionCoefficient), indexOfrefraction(m.indexOfrefraction), col(m.col) {
+            this->ambientLightCoefficient = m.ambientLightCoefficient;
+            this->diffuseLightCoefficient = m.diffuseLightCoefficient;
+            this->specularLightCoefficient = m.specularLightCoefficient;
+            this->reflectionLightExponent = m.reflectionLightExponent;
+        }
 
         virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered, bool &isLight) const override {
             double randomCoefficient = randomDouble();
+
+            // small hack to force a the sphere background to not infinetely accumulate the same color when diffusing reflecting
+            if(reflectionCoefficient < 0.01) {
+                attenuation = col->value(rec.uv, rec.p);
+                return false;
+            }
+
             if(randomCoefficient < reflectionCoefficient) {
                 double fuzz = 0.0;
                 MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
