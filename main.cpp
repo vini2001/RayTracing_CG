@@ -201,8 +201,6 @@ void processInputFile(ifstream &inputFile) {
     getline(inputFile, line);
     vFov = stod(line);
 
-    camera = Camera(lookFrom, lookAt, vUp, vFov, aspectRatio, aperture, distToFocus);
-
     // Lights Inputs
     getline(inputFile, line);
     int numLights = stoi(line);
@@ -308,8 +306,14 @@ void processInputFile(ifstream &inputFile) {
             componentList.add(poly);
         }
     }
-    
 
+    if(getline(inputFile, line)) {
+        vector<string> objectDetails = split(line);
+        aperture = stod(objectDetails[0]);
+        distToFocus = stod(objectDetails[1]);
+    }
+
+    camera = Camera(lookFrom, lookAt, vUp, vFov, aspectRatio, aperture, distToFocus);
 
     while (getline(inputFile, line)){
         cout << line << endl;
