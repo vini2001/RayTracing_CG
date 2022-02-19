@@ -11,11 +11,20 @@ class GenericMaterial : public Material {
         double reflectionCoefficient;
         double refractionCoefficient;
         double indexOfrefraction;
+        double fuzz;
 
         TexturePtr col = nullptr;
 
         GenericMaterial(double ambientLightCoefficient, double diffuseLightCoefficient, double specularLightCoefficient, double reflectionLightExponent, double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction) 
         : reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction),  col(make_shared<SolidColor>(color(1.0, 1.0, 1.0))) {
+            this->ambientLightCoefficient = ambientLightCoefficient;
+            this->diffuseLightCoefficient = diffuseLightCoefficient;
+            this->specularLightCoefficient = specularLightCoefficient;
+            this->reflectionLightExponent = reflectionLightExponent;
+        }
+
+        GenericMaterial(double ambientLightCoefficient, double diffuseLightCoefficient, double specularLightCoefficient, double reflectionLightExponent, double reflectionCoefficient, double refractionCoefficient, double indexOfrefraction, double fuzz) 
+        : fuzz(fuzz), reflectionCoefficient(reflectionCoefficient), refractionCoefficient(refractionCoefficient), indexOfrefraction(indexOfrefraction),  col(make_shared<SolidColor>(color(1.0, 1.0, 1.0))) {
             this->ambientLightCoefficient = ambientLightCoefficient;
             this->diffuseLightCoefficient = diffuseLightCoefficient;
             this->specularLightCoefficient = specularLightCoefficient;
@@ -29,7 +38,7 @@ class GenericMaterial : public Material {
             this->reflectionLightExponent = reflectionLightExponent;
         }
 
-        GenericMaterial(GenericMaterial &m) : reflectionCoefficient(m.reflectionCoefficient), refractionCoefficient(m.refractionCoefficient), indexOfrefraction(m.indexOfrefraction), col(m.col) {
+        GenericMaterial(GenericMaterial &m) : reflectionCoefficient(m.reflectionCoefficient), refractionCoefficient(m.refractionCoefficient), indexOfrefraction(m.indexOfrefraction), col(m.col), fuzz(m.fuzz) {
             this->ambientLightCoefficient = m.ambientLightCoefficient;
             this->diffuseLightCoefficient = m.diffuseLightCoefficient;
             this->specularLightCoefficient = m.specularLightCoefficient;
@@ -46,7 +55,6 @@ class GenericMaterial : public Material {
             }
 
             if(randomCoefficient < reflectionCoefficient) {
-                double fuzz = 0.0;
                 MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
                 return matPtr->scatter(rIn, rec, attenuation, scattered, isLight);
             }else if(randomCoefficient < reflectionCoefficient + refractionCoefficient) {

@@ -264,8 +264,12 @@ void processInputFile(ifstream &inputFile) {
         double kt = stod(materialDetails[5]); // transmission coefficient
         double ior = stod(materialDetails[6]); // index of refraction
 
-        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(ka, kd, ks, alpha, kr, kt, ior);
-        // cout << "Material " << i << ": " << matPtr->reflectionCoefficient << ", " << matPtr->refractionCoefficient  << ", " << matPtr->indexOfrefraction << endl;
+        double fuziness = 0;
+        if(materialDetails.size() > 7) {
+            fuziness = stod(materialDetails[7]); // index of refraction
+        }
+
+        GenericMaterialPtr matPtr = make_shared<GenericMaterial>(ka, kd, ks, alpha, kr, kt, ior, fuziness);
         materials.push_back(matPtr);
     }
 
