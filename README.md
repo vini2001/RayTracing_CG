@@ -2,6 +2,23 @@
 
 ## TP3 Computer Graphics - UFMG
 
+
+### Instructions
+
+- Compile: "make"
+- Run: "./demo.o {input_file_path.txt} {output_file_path.ppm} {width} {height} {samples_per_pixel}"
+  - width, height and samples_per_pixel are optional
+  - A low samples_per_pixel (5 - 10) can be used for fast rendering
+  - A high samples_per_pixel (100-500) can be used for high quality time consuming rendering
+
+
+#### Extra Features input instruction
+- Imperfect Reflection and Imperfect Refraction: Add a last parameter to the input file material description, this parameter defines the fuzyness and should range from 0 to 1. It's optional.
+- Camera Aperture and Distance to Focus: Add the 2 values at the end of the file (both are floats). 
+- Smooth Shadow: auto applied
+
+
+
 Extra features implemented:
 - Smooth Shadow (Example below - Perfect shadow x smooth shadow)
 
