@@ -1,5 +1,12 @@
 # RayTracing_CG
 
+## TP3 Computer Graphics - UFMG
+
+Extra features implemented:
+- Smooth Shadow (Example below - Perfect shadow x smooth shadow)
+
+<img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_perfect_shadow.png?raw=true"/> <img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_smooth_shadow.png?raw=true"/>
+
 
 input_tp_example.txt
 <img src="https://github.com/vini2001/RayTracing_CG/blob/d6040a0565f6ac527273f2f12989efeeb91a63f9/outputs/img_tp_high_res.png?raw=true"/>
