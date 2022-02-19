@@ -2,6 +2,12 @@
 
 ## TP3 Computer Graphics - UFMG
 
+This project is an implementation of a Distributed Raytracing Algorithm. </br>
+For objects, it supports spheres and polyhedrons, besides lights. </br>
+For pigments, it supports the checker pattern, solid color and image textures. </br>
+The material can be reflective, refractive, diffuse or a mix of all. </br></br>
+
+Input files follow the pattern described in the TP_instructions.pdf file.
 
 ### Instructions
 
@@ -24,6 +30,9 @@ Extra features implemented:
 
 <img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_perfect_shadow.png?raw=true"/> <img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_smooth_shadow.png?raw=true"/>
 
+- No Aperture (input_noaperture.txt) &  Focused (input_focused.txt)
+
+<img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_noaperture.png?raw=true"/> <img width="500" src="https://github.com/vini2001/RayTracing_CG/blob/master/outputs/img_focused.png?raw=true"/>
 
 - Imperfect Reflection (input_perfect_reflection.txt & input_imperfect_reflection.txt)
 
