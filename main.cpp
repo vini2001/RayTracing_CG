@@ -21,13 +21,13 @@ char* inputFileName;
 char* outputFileName;
 
 color **img;
-const int imgWidth = 800;
-const auto aspectRatio = 16.0 / 9.0;
-const int imgHeight = imgWidth / aspectRatio;
-const int samplesPerPixel = 20;
-const int maxDepth = 10;
+int imgWidth = 800;
+double aspectRatio = 4.0 / 3.0;
+int imgHeight = imgWidth / aspectRatio;
+int samplesPerPixel = 15;
+const int maxDepth = 14;
 
-int remainingRows = imgHeight;
+int remainingRows = 0;
 
 vector<TexturePtr> pigments;
 vector<shared_ptr<GenericMaterial>> materials;
@@ -162,6 +162,19 @@ bool validateArgs(int argc, char** argv) {
         strcat(newOutputFile, ".ppm");
         outputFileName = newOutputFile;
     }
+    cout << argc << endl;
+    if(argc >= 5) {
+        char* width = argv[3];
+        char* height = argv[4];
+
+        imgWidth = atoi(width);
+        imgHeight = atoi(height);
+    }
+
+    if(argc >= 6) {
+        samplesPerPixel = atoi(argv[5]);
+    }
+
     return true;
 }
 
@@ -296,6 +309,9 @@ int main(int argc, char** argv) {
 
     if(!validateArgs(argc, argv))
         return -1;
+
+    remainingRows = imgHeight;
+    aspectRatio = (double)imgWidth / (double)imgHeight;
 
     // create file
     ofstream outputFile;
