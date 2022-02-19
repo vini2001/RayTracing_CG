@@ -26,6 +26,7 @@ double aspectRatio = 4.0 / 3.0;
 int imgHeight = imgWidth / aspectRatio;
 int samplesPerPixel = 15;
 const int maxDepth = 14;
+const bool smoothShadow = true;
 
 int remainingRows = 0;
 
@@ -51,10 +52,16 @@ void lightMultiplier(const Ray& r, HitRecord hr, vector<Light> lights, v3& diffu
         double distance;
         // get vector from p to light.center
         vec3 lightDir = light.center - p;
+        double distanceToLight = lightDir.length();
+
+        if(smoothShadow) {
+            p = p +  distanceToLight * (vec3::randomInUnitSphere()/500);
+            lightDir = light.center - p;
+        }
+        
         vec3 normalizedLightDir = lightDir.normalize();
         HitRecord hr2;
         bool didHit = componentList.hit(Ray(p, lightDir), 0.001, infinity, hr2, true);
-        double distanceToLight = lightDir.length();
 
         bool inShadow = true;
 
