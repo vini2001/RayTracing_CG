@@ -4,9 +4,11 @@
 class DialectricMaterial : public Material {
     public:
         double indexOfrefraction;
+        double fuziness = 0;
         TexturePtr col = nullptr;
 
         DialectricMaterial(double indexOfrefraction) : indexOfrefraction(indexOfrefraction) {}
+        DialectricMaterial(double indexOfrefraction, double fuziness) : indexOfrefraction(indexOfrefraction), fuziness(fuziness) {}
         DialectricMaterial(double indexOfrefraction, TexturePtr col) : indexOfrefraction(indexOfrefraction), col(col) {}
 
         virtual bool scatter(const Ray& rIn, const HitRecord& rec, color& attenuation, Ray& scattered, bool &isLight) const override {
@@ -27,7 +29,7 @@ class DialectricMaterial : public Material {
                 direction = unitDirection.refract(rec.normal, refractionRatio);
             }
 
-            scattered = Ray(rec.p, direction);
+            scattered = Ray(rec.p, direction + fuziness * vec3::randomInUnitSphere());
             return true;
         }
     

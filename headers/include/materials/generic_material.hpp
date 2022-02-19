@@ -49,7 +49,7 @@ class GenericMaterial : public Material {
             double randomCoefficient = randomDouble();
 
             // small hack to force a the sphere background to not infinetely accumulate the same color when diffusing reflecting
-            if(reflectionCoefficient < 0.01) {
+            if(reflectionCoefficient < 0.01 && refractionCoefficient < 0.01  && indexOfrefraction < 0.01) {
                 attenuation = col->value(rec.uv, rec.p);
                 return false;
             }
@@ -58,7 +58,7 @@ class GenericMaterial : public Material {
                 MaterialPtr matPtr = make_shared<MetalMaterial>(col, fuzz);
                 return matPtr->scatter(rIn, rec, attenuation, scattered, isLight);
             }else if(randomCoefficient < reflectionCoefficient + refractionCoefficient) {
-                MaterialPtr matPtr = make_shared<DialectricMaterial>(indexOfrefraction);
+                MaterialPtr matPtr = make_shared<DialectricMaterial>(indexOfrefraction, fuzz);
                 return matPtr->scatter(rIn, rec, attenuation, scattered, isLight);
             }else{
                 MaterialPtr matPtr = make_shared<LambertianMaterial>(col);
