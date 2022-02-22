@@ -45,10 +45,12 @@ Camera camera;
 
 void lightMultiplier(const Ray& r, HitRecord hr, vector<Light> lights, v3& diffuseColor, v3& specularColor) {
     p3 p = hr.p;
+    MaterialPtr hitMat = hr.matPtr;
 
     v3 diffuseC = color(0, 0, 0);
     v3 specularC = color(0, 0, 0);
-    for (Light light : lights) {
+    for (int i = 1; i < lights.size(); i++) {
+        Light light  = lights[i];
         double distance;
         // get vector from p to light.center
         vec3 lightDir = light.center - p;
@@ -75,7 +77,6 @@ void lightMultiplier(const Ray& r, HitRecord hr, vector<Light> lights, v3& diffu
         }
 
         if(!inShadow) {
-            MaterialPtr hitMat = hr.matPtr;
             LightMaterialPtr lightMat = light.matPtr;
 
             double attenuation = 1.0 /  (
@@ -227,7 +228,7 @@ void processInputFile(ifstream &inputFile) {
         if(pigmentDetails[0] == "solid") {
             color pigmentColor = p3(stod(pigmentDetails[1]), stod(pigmentDetails[2]), stod(pigmentDetails[3]));
             pigments.push_back(make_shared<SolidColor>(pigmentColor));
-        } else if(pigmentDetails[0] == "textmap") {
+        } else if(pigmentDetails[0] == "textmap" || pigmentDetails[0] == "texmap") {
             string image = pigmentDetails[1];
             vector<string> lightDetails;
             getline(inputFile, line); lightDetails = split(line);
